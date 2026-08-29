@@ -38,6 +38,7 @@ export default function AdminPages() {
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
+  const [interestFilter, setInterestFilter] = useState('all');
 
   useEffect(() => {
     fetch('/api/auth/me').then(res => {
@@ -155,7 +156,6 @@ export default function AdminPages() {
         const allInterests = Array.from(new Set(
           signups.flatMap(s => (s.interests || '').split(',').map(i => i.trim()).filter(Boolean))
         )).sort();
-        const [interestFilter, setInterestFilter] = useState('all');
         const filtered = interestFilter === 'all'
           ? signups
           : signups.filter(s => (s.interests || '').toLowerCase().includes(interestFilter.toLowerCase()));
