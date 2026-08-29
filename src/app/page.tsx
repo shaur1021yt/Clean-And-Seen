@@ -31,42 +31,49 @@ export default function HomePage() {
   const [content, setContent] = useState<HomeContent>({});
   const [stats, setStats] = useState<Stat[]>([]);
 
+  // Effect 1: Fetch data, then mount ScrollCraft + parallax
   useEffect(() => {
-    fetch('/api/content/home').then(r => r.json()).then(setContent);
-    fetch('/api/stats').then(r => r.json()).then(setStats);
-  }, []);
-
-  useEffect(() => {
-    // Always reset scroll to top when homepage mounts
     window.scrollTo(0, 0);
 
+    // Hide nav/footer immediately
     const nav = document.querySelector('nav') || document.querySelector('header');
     const footer = document.querySelector('footer');
     if (nav) (nav as HTMLElement).style.display = 'none';
     if (footer) (footer as HTMLElement).style.display = 'none';
 
-    const tryMount = () => {
-      if (typeof window !== 'undefined' && (window as any).ScrollCraft) {
-        (window as any).ScrollCraft.mount(document.body);
-      } else {
-        setTimeout(tryMount, 50);
-      }
-    };
-    tryMount();
+    // Fetch content + stats BEFORE mounting ScrollCraft
+    // so data-sc-count attributes have real values when SC reads them
+    Promise.all([
+      fetch('/api/content/home').then(r => r.json()).then(setContent),
+      fetch('/api/stats').then(r => r.json()).then(setStats),
+    ]).then(() => {
+      // Wait 2 frames for React to re-render with fetched data
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          // Now mount ScrollCraft — DOM has real stat values
+          const tryMount = () => {
+            if (typeof window !== 'undefined' && (window as any).ScrollCraft) {
+              (window as any).ScrollCraft.mount(document.body);
+            } else {
+              setTimeout(tryMount, 50);
+            }
+          };
+          tryMount();
+        });
+      });
+    });
 
-    // ─── Parallax: throttled to every-other-frame, single rAF ───
+    // ─── Parallax: throttled to every-other-frame ───
     let frameCount = 0;
     let mouseX = 0, mouseY = 0;
     let smoothMouseX = 0, smoothMouseY = 0;
     const root = document.documentElement;
 
-    // Cache elements to avoid querySelector every frame
     const starsEl = root.querySelector('.pcas-stars') as HTMLElement | null;
     const orbsEl = root.querySelector('.pcas-orbs') as HTMLElement | null;
     const dotsEl = root.querySelector('.pcas-dots') as HTMLElement | null;
     const sphereEl = root.querySelector('.pcas-sphere') as HTMLElement | null;
 
-    // Mouse tracking (desktop only)
     const onMouseMove = (e: MouseEvent) => {
       mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
       mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
@@ -76,31 +83,16 @@ export default function HomePage() {
 
     const tick = () => {
       frameCount++;
-      // Only update every other frame for parallax (60fps → 30fps visual, halves GPU work)
       if (frameCount % 2 === 0) {
-        // Smooth mouse interpolation
         smoothMouseX += (mouseX - smoothMouseX) * 0.08;
         smoothMouseY += (mouseY - smoothMouseY) * 0.08;
-
         const scrollY = window.scrollY;
         const mx = isDesktop ? smoothMouseX : 0;
         const my = isDesktop ? smoothMouseY : 0;
-
-        // Use transform3d for GPU-accelerated compositing instead of individual properties
-        // This avoids triggering style recalculation on the root element
-        if (starsEl) {
-          starsEl.style.transform = `translate3d(${scrollY * 0.015 + mx * 3}px, ${scrollY * -0.02 + my * 2}px, 0)`;
-        }
-        if (orbsEl) {
-          orbsEl.style.transform = `translate3d(${scrollY * 0.06 + mx * 12}px, ${scrollY * -0.09 + my * 8}px, 0)`;
-        }
-        if (dotsEl) {
-          dotsEl.style.transform = `translate3d(${scrollY * 0.035 + mx * 7}px, ${scrollY * -0.05 + my * 5}px, 0)`;
-        }
-        if (sphereEl) {
-          // Sphere also needs to read --sc-p from ScrollCraft, so keep that one property on root
-          sphereEl.style.transform = `scale(calc(0.4 + var(--sc-p, 0) * 1.8)) translate3d(${mx * 6}px, ${scrollY * -0.12 + my * -4}px, 0)`;
-        }
+        if (starsEl) starsEl.style.transform = `translate3d(${scrollY * 0.015 + mx * 3}px, ${scrollY * -0.02 + my * 2}px, 0)`;
+        if (orbsEl) orbsEl.style.transform = `translate3d(${scrollY * 0.06 + mx * 12}px, ${scrollY * -0.09 + my * 8}px, 0)`;
+        if (dotsEl) dotsEl.style.transform = `translate3d(${scrollY * 0.035 + mx * 7}px, ${scrollY * -0.05 + my * 5}px, 0)`;
+        if (sphereEl) sphereEl.style.transform = `scale(calc(0.4 + var(--sc-p, 0) * 1.8)) translate3d(${mx * 6}px, ${scrollY * -0.12 + my * -4}px, 0)`;
       }
     };
 
@@ -108,14 +100,11 @@ export default function HomePage() {
     const onScroll = () => {
       if (!ticking) {
         ticking = true;
-        requestAnimationFrame(() => {
-          tick();
-          ticking = false;
-        });
+        requestAnimationFrame(() => { tick(); ticking = false; });
       }
     };
     window.addEventListener('scroll', onScroll, { passive: true });
-    onScroll(); // initial
+    onScroll();
 
     return () => {
       if (nav) (nav as HTMLElement).style.display = '';
@@ -671,8 +660,10 @@ export default function HomePage() {
                     <div key={stat.id} style={{ textAlign: 'center' }}>
                       <span
                         className="pcas-stat-number"
+                        data-sc-count={`0 ${stat.value}`}
+                        data-sc-count-at={`${0.12 + i * 0.06} ${0.55 + i * 0.05}`}
                         style={{ display: 'inline-block' }}
-                      >{stat.value.toLocaleString()}</span>
+                      >0</span>
                       <p className="pcas-stat-label">{stat.label}</p>
                     </div>
                   ))
