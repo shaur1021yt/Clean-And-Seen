@@ -151,41 +151,97 @@ export default function AdminPages() {
       )}
 
       {/* Signups Tab */}
-      {activeTab === 'signups' && (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Name</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Email</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Phone</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Interests</th>
-                <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
-              {signups.map((signup) => (
-                <tr key={signup.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-gray-900">{signup.name}</td>
-                  <td className="px-6 py-4 text-primary-600">{signup.email}</td>
-                  <td className="px-6 py-4 text-gray-600">{signup.phone || '-'}</td>
-                  <td className="px-6 py-4 text-gray-600 text-sm">{signup.interests || '-'}</td>
-                  <td className="px-6 py-4 text-gray-500 text-sm">
-                    {new Date(signup.created_at).toLocaleDateString()}
-                  </td>
-                </tr>
-              ))}
-              {signups.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-                    No volunteer signups yet.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {activeTab === 'signups' && (() => {
+        const allInterests = Array.from(new Set(
+          signups.flatMap(s => (s.interests || '').split(',').map(i => i.trim()).filter(Boolean))
+        )).sort();
+        const [interestFilter, setInterestFilter] = useState('all');
+        const filtered = interestFilter === 'all'
+          ? signups
+          : signups.filter(s => (s.interests || '').toLowerCase().includes(interestFilter.toLowerCase()));
+
+        const downloadCSV = () => {
+          const headers = ['Name', 'Email', 'Phone', 'Interests', 'Message', 'Date'];
+          const rows = filtered.map(s => [
+            s.name,
+            s.email,
+            s.phone || '',
+            s.interests || '',
+            (s.message || '').replace(/"/g, '""'),
+            new Date(s.created_at).toLocaleDateString(),
+          ]);
+          const csv = [headers, ...rows]
+            .map(row => row.map(cell => `"${cell}"`).join(',')).
+            join('\n');
+          const blob = new Blob([csv], { type: 'text/csv' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `volunteers${interestFilter !== 'all' ? '-' + interestFilter : ''}-${new Date().toISOString().slice(0,10)}.csv`;
+          a.click();
+          URL.revokeObjectURL(url);
+        };
+
+        return (
+          <div>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div className="flex items-center gap-3">
+                <label className="text-sm font-medium text-gray-600">Filter by interest:</label>
+                <select
+                  value={interestFilter}
+                  onChange={e => setInterestFilter(e.target.value)}
+                  className="px-3 py-2 rounded-lg border border-gray-300 text-sm focus:border-primary-500 focus:ring-2 focus:ring-primary-500/20 outline-none"
+                >
+                  <option value="all">All Interests ({signups.length})</option>
+                  {allInterests.map(interest => (
+                    <option key={interest} value={interest}>{interest} ({signups.filter(s => (s.interests || '').toLowerCase().includes(interest.toLowerCase())).length})</option>
+                  ))}
+                </select>
+              </div>
+              <button
+                onClick={downloadCSV}
+                className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-medium rounded-lg hover:bg-emerald-700 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
+                Download CSV ({filtered.length})
+              </button>
+            </div>
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Name</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Email</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Phone</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Interests</th>
+                    <th className="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {filtered.map((signup) => (
+                    <tr key={signup.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 font-medium text-gray-900">{signup.name}</td>
+                      <td className="px-6 py-4 text-primary-600">{signup.email}</td>
+                      <td className="px-6 py-4 text-gray-600">{signup.phone || '-'}</td>
+                      <td className="px-6 py-4 text-gray-600 text-sm">{signup.interests || '-'}</td>
+                      <td className="px-6 py-4 text-gray-500 text-sm">
+                        {new Date(signup.created_at).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                  {filtered.length === 0 && (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                        {interestFilter !== 'all' ? 'No volunteers with this interest.' : 'No volunteer signups yet.'}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Contacts Tab */}
       {activeTab === 'contacts' && (

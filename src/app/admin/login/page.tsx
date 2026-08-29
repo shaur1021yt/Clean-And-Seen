@@ -83,10 +83,7 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Default credentials:</p>
-          <p className="font-mono bg-gray-50 p-2 rounded mt-1">admin / pcas2025admin</p>
-        </div>
+
       </div>
     </div>
   );
