@@ -671,7 +671,6 @@ export default function HomePage() {
                     <div key={stat.id} style={{ textAlign: 'center' }}>
                       <span
                         className="pcas-stat-number"
-                        data-sc-cue={`${0.12 + i * 0.06} ${0.55 + i * 0.05}`}
                         style={{ display: 'inline-block' }}
                       >{stat.value.toLocaleString()}</span>
                       <p className="pcas-stat-label">{stat.label}</p>
