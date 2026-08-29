@@ -1,26 +1,196 @@
 @import "tailwindcss";
 
+@theme {
+  /* Primary: Logo blues — slate (#8BA4C0), rich (#4A7FB5), deep (#2B5797) */
+  --color-primary-50: #F0F5FA;
+  --color-primary-100: #E1ECF5;
+  --color-primary-200: #B8CCE0;
+  --color-primary-300: #8BA4C0;
+  --color-primary-400: #6B8FB8;
+  --color-primary-500: #4A7FB5;
+  --color-primary-600: #3B6FA0;
+  --color-primary-700: #2B5797;
+  --color-primary-800: #1E3F75;
+  --color-primary-900: #142B54;
+
+  /* Accent: Warm gold — complement to the blue logo */
+  --color-accent-50: #FFF9EB;
+  --color-accent-100: #FFF0CC;
+  --color-accent-200: #FFE099;
+  --color-accent-300: #FFD066;
+  --color-accent-400: #FFC033;
+  --color-accent-500: #F5A623;
+  --color-accent-600: #D4891A;
+  --color-accent-700: #B06D13;
+  --color-accent-800: #8C540E;
+  --color-accent-900: #6B3F0A;
+
+  /* Warm: Soft blue-grays for subtle accents */
+  --color-warm-50: #F8FAFC;
+  --color-warm-100: #F1F5F9;
+  --color-warm-200: #E2E8F0;
+  --color-warm-300: #CBD5E1;
+  --color-warm-400: #94A3B8;
+  --color-warm-500: #64748B;
+}
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1a2e;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--background);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* Typography hierarchy:
+   Display: Archivo (headlines, hero text)
+   Body: Inter (prose, paragraphs)
+   Mono: JetBrains Mono (labels, caps, stats, code)
+*/
+.font-display { font-family: 'Archivo', system-ui, sans-serif; }
+.font-body { font-family: 'Inter', system-ui, sans-serif; }
+.font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
+
+/* Note: scroll-behavior is not set here because the scrollcraft engine
+   on the homepage manages its own scroll reading. smooth scrolling
+   on other pages is handled per-page if needed. */
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Selection color */
+::selection {
+  background: rgba(74,127,181,0.2);
+  color: inherit;
+}
+
+/* Animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+.animate-count-up {
+  animation: countUp 0.8s ease-out forwards;
+}
+
+/* Hero gradient */
+.hero-gradient {
+  background: linear-gradient(135deg, #4A7FB5 0%, #2B5797 50%, #142B54 100%);
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: all 0.3s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+
+
+/* Section styles */
+.section-padding {
+  @apply py-16 md:py-24 px-4;
+}
+
+/* Button styles — premium treatment */
+.btn-primary {
+  @apply bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:bg-primary-700 hover:shadow-lg active:scale-95;
+  box-shadow: 0 2px 8px rgba(74,127,181,0.2);
+}
+.btn-primary:hover {
+  box-shadow: 0 6px 24px rgba(74,127,181,0.3);
+}
+
+.btn-secondary {
+  @apply bg-white text-primary-600 px-6 py-3 rounded-lg font-semibold border-2 border-primary-600 transition-all duration-300 hover:bg-primary-50 active:scale-95;
+}
+
+.btn-accent {
+  @apply bg-accent-500 text-white px-6 py-3 rounded-lg font-semibold transition-all duration-300 hover:bg-accent-600 hover:shadow-lg active:scale-95;
+  box-shadow: 0 2px 8px rgba(245,166,35,0.2);
+}
+.btn-accent:hover {
+  box-shadow: 0 6px 24px rgba(245,166,35,0.3);
+}
+
+/* Admin styles */
+.admin-sidebar {
+  @apply w-64 bg-gray-900 text-white min-h-screen p-4;
+}
+
+.admin-content {
+  @apply flex-1 bg-gray-50 p-6;
+}
+
+.input-field {
+  @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 outline-none transition-all text-[15px] bg-white;
+}
+.input-field::placeholder {
+  color: #a0aec0;
+}
+
+.textarea-field {
+  @apply w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-400 outline-none transition-all text-[15px] bg-white;
+  resize: vertical;
+}
+
+.btn-save {
+  @apply bg-primary-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-primary-700 transition-all;
+  box-shadow: 0 2px 8px rgba(74,127,181,0.2);
+}
+
+.btn-danger {
+  @apply bg-red-500 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-red-600 transition-all;
+}
+
+.btn-success {
+  @apply bg-accent-500 text-white px-4 py-2.5 rounded-lg font-semibold hover:bg-accent-600 transition-all;
+  box-shadow: 0 2px 8px rgba(245,166,35,0.15);
 }
