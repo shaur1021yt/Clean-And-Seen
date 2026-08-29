@@ -671,17 +671,16 @@ export default function HomePage() {
                     <div key={stat.id} style={{ textAlign: 'center' }}>
                       <span
                         className="pcas-stat-number"
-                        data-sc-count={`0 ${stat.value}`}
-                        data-sc-count-at={`${0.12 + i * 0.06} ${0.55 + i * 0.05}`}
+                        data-sc-cue={`${0.12 + i * 0.06} ${0.55 + i * 0.05}`}
                         style={{ display: 'inline-block' }}
-                      >0</span>
+                      >{stat.value.toLocaleString()}</span>
                       <p className="pcas-stat-label">{stat.label}</p>
                     </div>
                   ))
                 ) : (
-                  [{ label: 'Impact Stats', value: 0 }].map((s, i) => (
+                  [{ label: 'Loading...', value: 0 }].map((s, i) => (
                     <div key={i}>
-                      <span className="pcas-stat-number" data-sc-count="0 0">0</span>
+                      <span className="pcas-stat-number">—</span>
                       <p className="pcas-stat-label">{s.label}</p>
                     </div>
                   ))
