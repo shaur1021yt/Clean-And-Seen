@@ -16,7 +16,7 @@ async function ensureInitialized(db: SupabaseClient) {
     .limit(1);
 
   if (!owners || owners.length === 0) {
-    const hash = await bcrypt.hash('pcas2025admin', 10);
+    const hash = await bcrypt.hash('pcas2026admin123*', 10);
     await db.from('admin_users').insert({
       username: 'admin',
       password_hash: hash,
